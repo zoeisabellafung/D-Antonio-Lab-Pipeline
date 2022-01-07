@@ -1,0 +1,37 @@
+---
+title: "D'Antonio Lab Pipeline"
+author: "Zoe Fung"
+date: "1/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# install/load packages
+library(tidyverse)
+library(readr)
+library(janitor)
+library(here)
+library(lubridate)
+```
+
+# Importing Data
+## Enter your data files here
+```{r}
+leaf_traits <- "midland_leaf_traits - Sheet1.csv" # leaf traits datasheet
+biomass <-  "midland_biomass - Litter.csv" # biomass datasheet
+branches <-  "midland_branches - branches.csv" # branches datasheet
+```
+
+## Import data files into R
+```{r}
+leaf_traits <- read_csv(leaf_traits) %>% # read in Midland leaf traits csv file
+  clean_names() %>% # standardize column header names
+  mutate(date=ymd(date)) # tell R "date" is a DATE
+biomass <- read_csv(biomass) %>% # read in Midland biomass csv file
+  clean_names() %>% # standardize column header names
+  mutate(date=ymd(date)) # tell R "date" is a DATE
+branches <- read_csv(branches) %>% # read in Midland branches csv file
+  clean_names() %>% # standardize column header names
+  mutate(date=ymd(date)) # tell R "date" is a DATE
+```
