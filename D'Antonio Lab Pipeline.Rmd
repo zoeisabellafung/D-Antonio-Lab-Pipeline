@@ -34,4 +34,6 @@ biomass <- read_csv(biomass) %>% # read in Midland biomass csv file
 branches <- read_csv(branches) %>% # read in Midland branches csv file
   clean_names() %>% # standardize column header names
   mutate(date=ymd(date)) # tell R "date" is a DATE
+
+write_csv(leaf_traits,paste("leaf_traits",".csv",sep="")) # create .csv with standardized column headers
 ```
