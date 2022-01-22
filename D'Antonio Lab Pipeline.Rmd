@@ -35,11 +35,16 @@ species_clean <- leaf_traits$species %>% # make a vector from the species column
   as.character(species_clean) # make "species_clean" a character
 species_clean <- str_remove_all(species_clean, "[_0123456789]") # remove the number/_ characters from the species names
 leaf_traits <- leaf_traits %>%
-  add_column(species_cleaned=species_clean) # why does this keep adding the wrong thing back to my dataset?
+  add_column(species_cleaned=species_clean) # add species without numbers to dataset
 as.character(leaf_traits$transect)
+```
+  
+# Reorder transects
+```{r}
+mutate(leaf_traits$transect=fct_reorder(transect,"1","2","3","4","6","7","10","12")) %>% # reorder transect by numerical order
 ```
 
 # Create standardized .csv
 ```{r}
-write_csv(leaf_traits,paste("leaf_traits",".csv",sep="")) # create .csv with standardized column headers
+write_csv(leaf_traits,paste("leaf_traits_shiny",".csv",sep="")) # create .csv with standardized column headers
 ```
