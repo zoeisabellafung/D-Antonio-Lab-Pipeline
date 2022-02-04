@@ -45,6 +45,20 @@ curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf
     mean=mean(curling_mm), # mean
     sd=sd(curling_mm) # std. deviation
   )
+thickness_summary <- leaf_traits %>% # create data frame for summary stats of leaf thickness
+  group_by(species_cleaned) %>% # group the summary stats by species
+  summarise(
+    n=n(), # sample size
+    mean=mean(thickness_mm), # mean
+    sd=sd(thickness_mm) # std. deviation
+  )
+mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf mass
+  group_by(species_cleaned) %>% # group the summary stats by species
+  summarise(
+    n=n(), # sample size
+    mean=mean(mass_g), # mean
+    sd=sd(mass_g) # std. deviation
+  )
 ```
 
 # Create standardized .csv
@@ -53,9 +67,37 @@ write_csv(leaf_traits,paste("leaf_traits_shiny",".csv",sep="")) # create .csv wi
 ```
 
 # Graphs
-## Bar chart
+## Bar charts
 ```{r}
 ggplot(curling_summary, aes(x=species_cleaned, y=mean)) + # create plot of species x curling
-  geom_bar(stat="identity", fill="plum4") + # plot = histogram/bar graph
+  geom_bar(stat="identity", fill="plum4") + # plot = bar graph
+  xlab("Species") + # x-axis label
+  ylab("Curling(mm)") + # y-axis label
   geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+ggplot(thickness_summary, aes(x=species_cleaned, y=mean)) + # create plot of species x thickness
+  geom_bar(stat="identity", fill="plum4") + # plot = histogram/bar graph
+  xlab("Species") + # x-axis label
+  ylab("Thickness (mm)") + # y-axis label
+  geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+ggplot(mass_summary, aes(x=species_cleaned, y=mean)) + # create plot of species x mass
+  geom_bar(stat="identity", fill="plum4") + # plot = histogram/bar graph
+  xlab("Species") + # x-axis label
+  ylab("Mass (g)") + # y-axis label
+  geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+```
+
+## Boxplots
+```{r}
+ggplot(leaf_traits, aes(x=as.factor(species_cleaned), y=curling_mm)) + # create plot of species x curling
+  geom_boxplot(fill="plum4") + # plot = box plot 
+  xlab("Species") + # x-axis label
+  ylab("Curling (mm)") # y-axis label
+ggplot(leaf_traits, aes(x=as.factor(species_cleaned), y=thickness_mm)) + # create plot of species x curling
+  geom_boxplot(fill="plum4") + # plot = box plot 
+  xlab("Species") + # x-axis label
+  ylab("Thickness (mm)") # y-axis label
+ggplot(leaf_traits, aes(x=as.factor(species_cleaned), y=mass_g)) + # create plot of species x curling
+  geom_boxplot(fill="plum4") + # plot = box plot 
+  xlab("Species") + # x-axis label
+  ylab("Mass (g)") # y-axis label
 ```
