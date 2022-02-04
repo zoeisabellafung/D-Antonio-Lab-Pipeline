@@ -13,6 +13,7 @@ library(readr)
 library(janitor)
 library(here)
 library(lubridate)
+library(ggplot2)
 ```
 
 # Importing Data
@@ -27,24 +28,34 @@ branches <-  "midland_branches - branches.csv" # branches datasheet
 ```{r}
 leaf_traits <- read_csv(midland_leaf_traits) %>% # read in Midland leaf traits csv file
   clean_names() %>% # standardize column header names
-  mutate(date=ymd(date)) # tell R "date" is a DATE
+  mutate(date=ymd(date)) %>% # tell R "date" is a DATE
+  mutate(as.numeric(curling_mm)) # make curling a numeric vector
 ```
-# Clean up species names (this piece of code doesnt work)
+# Clean up data set/generate summary stats
 ```{r}
 species_clean <- leaf_traits$species %>% # make a vector from the species column
   as.character(species_clean) # make "species_clean" a character
 species_clean <- str_remove_all(species_clean, "[_0123456789]") # remove the number/_ characters from the species names
 leaf_traits <- leaf_traits %>%
   add_column(species_cleaned=species_clean) # add species without numbers to dataset
-as.character(leaf_traits$transect)
-```
-  
-# Reorder transects
-```{r}
-mutate(leaf_traits$transect=fct_reorder(transect,"1","2","3","4","6","7","10","12")) %>% # reorder transect by numerical order
+curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf curling
+  group_by(species_cleaned) %>% # group the summary stats by species
+  summarise(
+    n=n(), # sample size
+    mean=mean(curling_mm), # mean
+    sd=sd(curling_mm) # std. deviation
+  )
 ```
 
 # Create standardized .csv
 ```{r}
 write_csv(leaf_traits,paste("leaf_traits_shiny",".csv",sep="")) # create .csv with standardized column headers
+```
+
+# Graphs
+## Bar chart
+```{r}
+ggplot(curling_summary, aes(x=species_cleaned, y=mean)) + # create plot of species x curling
+  geom_bar(stat="identity", fill="plum4") + # plot = histogram/bar graph
+  geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
 ```
