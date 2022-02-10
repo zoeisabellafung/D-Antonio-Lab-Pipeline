@@ -35,7 +35,9 @@ leaf_traits <- read_csv(midland_leaf_traits) %>% # read in Midland leaf traits c
 ```{r}
 species_clean <- leaf_traits$species %>% # make a vector from the species column
   as.character(species_clean) # make "species_clean" a character
-species_clean <- str_remove_all(species_clean, "[_0123456789]") # remove the number/_ characters from the species names
+species_clean <- species_clean %>%
+  str_remove_all("[_0123456789]") %>% # remove the number/_ characters from the species names
+  # str_remove("[NA]") # remove the "NA" from the ends of species names
 leaf_traits <- leaf_traits %>%
   add_column(species_cleaned=species_clean) # add species without numbers to dataset
 curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf curling
@@ -59,7 +61,21 @@ mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf ma
     mean=mean(mass_g), # mean
     sd=sd(mass_g) # std. deviation
   )
-leaf_traits_summary <- merge(curling_summary, thickness_summary, mass_summary, by="species_cleaned") # create one data frame with the summary stats for each leaf trait (not)
+leaf_traits_summary <- bind_rows(curling_summary, thickness_summary, mass_summary) # combine the three data sets 
+var <- (c(1:12("curling"), 13:24("thickness"), 25:36("mass")) # create a vector that labels the variable each data point is associated with  
+        # THIS IS NOT WORKING
+  
+curling_thickness <- merge(curling_summary, thickness_summary, by="species_cleaned") # merge thickness and curling summary data frames
+leaf_traits_summary <- merge(curling_thickness, mass_summary, by="species_cleaned") %>% # merge thickness/curling and mass summary data frames
+  rename(curling_n=n.x) %>% # rename curling sample size column
+  rename(curling_mean=mean.x) %>% # rename curling mean column
+  rename(curling_sd=sd.x) %>% # rename curling sd column
+  rename(thickness_n=n.y) %>% # rename thickness sample size column
+  rename(thickness_mean=mean.y) %>% # rename thickness mean column
+  rename(thickness_sd=sd.y) %>% # rename thicnkess sd column
+  rename(mass_n=n) %>% # rename mass sample size column
+  rename(mass_mean=mean) %>% # rename mass mean column
+  rename(mass_sd=sd) # rename mass sd column
 ```
 
 # Create standardized .csv

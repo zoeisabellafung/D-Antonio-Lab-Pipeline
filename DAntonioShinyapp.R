@@ -44,10 +44,22 @@ mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf ma
     mean=mean(mass_g), # mean
     sd=sd(mass_g) # std. deviation
   )
+curling_thickness <- merge(curling_summary, thickness_summary, by="species_cleaned") # merge thickness and curling summary data frames
+leaf_traits_summary <- merge(curling_thickness, mass_summary, by="species_cleaned") %>% # merge thickness/curling and mass summary data frames
+  rename(curling_n=n.x) %>% # rename curling sample size column
+  rename(curling_mean=mean.x) %>% # rename curling mean column
+  rename(curling_sd=sd.x) %>% # rename curling sd column
+  rename(thickness_n=n.y) %>% # rename thickness sample size column
+  rename(thickness_mean=mean.y) %>% # rename thickness mean column
+  rename(thickness_sd=sd.y) %>% # rename thicnkess sd column
+  rename(mass_n=n) %>% # rename mass sample size column
+  rename(mass_mean=mean) %>% # rename mass mean column
+  rename(mass_sd=sd) # rename mass sd column
+  
 
 species_summary <- leaf_traits$species_cleaned # create vector
 
-ui <- navbarPage("D'Antonio Lab Shiny app", 
+ui <- navbarPage("Midland Leaf Traits", 
                  theme=bs_theme(version=4,bootswatch="minty"), # set app theme
                  # bg="darkgray",
                  # fg="darkslateblue",
@@ -87,10 +99,10 @@ ui <- navbarPage("D'Antonio Lab Shiny app",
                           tabsetPanel(id="visualization", # create tabs within the page
                                       tabPanel(h4("Bar plots"), # first panel: bar plots
                                                sidebarLayout( # create a side bar/main panel layout
-                                                 sidebarPanel("Customize your bar plot!", # title the side bar
+                                                 sidebarPanel(p(strong("Customize your bar plot!")), # title the side bar
                                                               radioButtons(inputId="variable", # radio buttons widget to choose a variable
                                                                            label="Choose a variable:",
-                                                                           choices=c("Curling (mm)"=curling_summary, "Thickness (mm)"=thickness_summary, "Mass (g)"=mass_summary) # choices are the trait variables
+                                                                           choices=c("Curling (mm)"="curling_mean", "Thickness (mm)"="thickness_mean", "Mass (g)"="mass_mean") # choices are the trait variables
                                                                            )), # CHOICES NEED TO BE FIXED
                                                  mainPanel( # create the main panel
                                                    plotOutput(outputId="leaf_traits_bar")))), # show the leaf traits bar plot
@@ -124,8 +136,9 @@ server <- function(input,output){
       filter(species_cleaned==input$species) # filter the data set by the species input
   })
   
-  curling_summary_reactive <- reactive({ # create a reactive data frame for summary stat visualization (bar plots and boxplots)
-    curling_summary # THIS IS UNFINISHED
+  summary_reactive <- reactive({ # create a reactive data frame for summary stat visualization (bar plots and boxplots)
+    leaf_traits_summary %>%
+      filter()
   })
   output$summary_table <- renderPrint({ # create a reactive table of summary stats
     summary(leaf_traits_reactive[,as.numeric(input$species)]) 
