@@ -59,11 +59,12 @@ mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf ma
     mean=mean(mass_g), # mean
     sd=sd(mass_g) # std. deviation
   )
+leaf_traits_summary <- merge(curling_summary, thickness_summary, mass_summary, by="species_cleaned") # create one data frame with the summary stats for each leaf trait (not)
 ```
 
 # Create standardized .csv
 ```{r}
-write_csv(leaf_traits,paste("leaf_traits_shiny",".csv",sep="")) # create .csv with standardized column headers
+write_csv(leaf_traits,paste("leaf_traits",".csv",sep="")) # create .csv with standardized column headers
 ```
 
 # Graphs
