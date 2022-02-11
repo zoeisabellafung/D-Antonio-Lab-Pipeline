@@ -10,6 +10,8 @@ library(ggplot2)
 library(dplyr)
 library(forcats)
 library(bslib)
+library(ggthemes)
+library(extrafont)
 
 # load in overall Midland leaf traits data
 leaf_traits <- read_csv("leaf_traits.csv") # load Midland leaf traits data
@@ -30,6 +32,10 @@ curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf
     mean=mean(curling_mm), # mean
     sd=sd(curling_mm) # std. deviation
   )
+var1 <- rep("curling", times=12) # create vector with 12 values "curling"
+curling_summary <- curling_summary %>%
+  add_column(trait=var1) # add "curling" vector to curling summary data frame
+
 thickness_summary <- leaf_traits %>% # create data frame for summary stats of leaf thickness
   group_by(species_cleaned) %>% # group the summary stats by species
   summarise(
@@ -37,6 +43,10 @@ thickness_summary <- leaf_traits %>% # create data frame for summary stats of le
     mean=mean(thickness_mm), # mean
     sd=sd(thickness_mm) # std. deviation
   )
+var2 <- rep("thickness", times=12) # create vector with 12 values "curling"
+thickness_summary <- thickness_summary %>%
+  add_column(trait=var2) # add "curling" vector to curling summary data frame
+
 mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf mass
   group_by(species_cleaned) %>% # group the summary stats by species
   summarise(
@@ -44,21 +54,11 @@ mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf ma
     mean=mean(mass_g), # mean
     sd=sd(mass_g) # std. deviation
   )
-curling_thickness <- merge(curling_summary, thickness_summary, by="species_cleaned") # merge thickness and curling summary data frames
-leaf_traits_summary <- merge(curling_thickness, mass_summary, by="species_cleaned") %>% # merge thickness/curling and mass summary data frames
-  rename(curling_n=n.x) %>% # rename curling sample size column
-  rename(curling_mean=mean.x) %>% # rename curling mean column
-  rename(curling_sd=sd.x) %>% # rename curling sd column
-  rename(thickness_n=n.y) %>% # rename thickness sample size column
-  rename(thickness_mean=mean.y) %>% # rename thickness mean column
-  rename(thickness_sd=sd.y) %>% # rename thicnkess sd column
-  rename(mass_n=n) %>% # rename mass sample size column
-  rename(mass_mean=mean) %>% # rename mass mean column
-  rename(mass_sd=sd) # rename mass sd column
-  
+var3 <- rep("mass", times=12) # create vector with 12 values "curling"
+mass_summary <- mass_summary %>%
+  add_column(trait=var3) # add "curling" vector to curling summary data frame
 
-species_summary <- leaf_traits$species_cleaned # create vector
-
+leaf_traits_summary <- bind_rows(curling_summary, thickness_summary, mass_summary) # combine the three data sets 
 ui <- navbarPage("Midland Leaf Traits", 
                  theme=bs_theme(version=4,bootswatch="minty"), # set app theme
                  # bg="darkgray",
@@ -80,34 +80,40 @@ ui <- navbarPage("Midland Leaf Traits",
                  
                  # tab 2
                  tabPanel("Summary Statistics", # create tab for summary stats/overview of data
-                          fluidRow(column(12,
-                                          h1("Overview of Midland Leaf Traits Data")), # header of the tab page
-                                   br(), # add a line of space
-                                   br() # add another line of space
-                          ),
-                          fluidRow(column(12, align="center",
-                                          h3("Midland Leaf Traits Summary Statistics"),
-                                          verbatimTextOutput("summary_table"), # display table with summary statistics
-                                          radioButtons(inputId="species", # radio buttons widget to choose a species' table
-                                                       label="Select a species to view:",
-                                                       choices=c(unique(leaf_traits$species_cleaned)))) # choices are the species
-                                          )),
+                          sidebarLayout( # create side bar/main panel layout
+                            sidebarPanel(p(strong("Customize your summary statistics table!")), # title the sidebar
+                                         checkboxGroupInput(inputId="trait", # radio buttons widget to choose a species' table
+                                                      label="Select a trait to view:",
+                                                      choices=c("Curling (mm)"="curling", "Thickness (mm)"="thickness", "Mass (g)"="mass"), # choices are the traits
+                                                      selected=c("Curling (mm)"="curling", "Thickness (mm)"="thickness", "Mass (g)"="mass"))), # all automatically selected when app is run
+                            mainPanel(p(strong("Summary Table")), # title the main panel
+                                      verbatimTextOutput("summary_table")))), # display summary table that changes based on trait input))) 
                  
-                 # tab 2
+                 # tab 3
                  tabPanel("Visualization", # create tab for data visualization
                           h1("Visualizing Midland Leaf Traits"), # header of the tab page
                           tabsetPanel(id="visualization", # create tabs within the page
                                       tabPanel(h4("Bar plots"), # first panel: bar plots
                                                sidebarLayout( # create a side bar/main panel layout
                                                  sidebarPanel(p(strong("Customize your bar plot!")), # title the side bar
-                                                              radioButtons(inputId="variable", # radio buttons widget to choose a variable
-                                                                           label="Choose a variable:",
-                                                                           choices=c("Curling (mm)"="curling_mean", "Thickness (mm)"="thickness_mean", "Mass (g)"="mass_mean") # choices are the trait variables
-                                                                           )), # CHOICES NEED TO BE FIXED
+                                                              radioButtons(inputId="traitbar", # radio buttons widget to choose a variable
+                                                                           label="Choose a trait:",
+                                                                           choices=c("Curling (mm)"="curling", "Thickness (mm)"="thickness", "Mass (g)"="mass") # choices are the trait variables
+                                                                           )), 
                                                  mainPanel( # create the main panel
                                                    plotOutput(outputId="leaf_traits_bar")))), # show the leaf traits bar plot
+                                      tabPanel(h4("Boxplots"), # second panel: boxplots
+                                               sidebarLayout( # create side bar/main panel layout
+                                                 sidebarPanel(p(strong("Customize your boxplot!")), # title the sidebar
+                                                              radioButtons(inputId="traitbox", # radio buttons widget to choose a trait for the boxplot
+                                                                           label="Choose a trait:",
+                                                                           choices=c("Curling (mm)"="curling", "Thickness (mm)"="thickness", "Mass (g)"="mass"), # choices are the traits
+                                                                           )),
+                                                 mainPanel( # create main panel
+                                                   plotOutput(outputId="leaf_traits_box") # show the leaf traits box plot
+                                                   ))),
                                       
-                                      tabPanel(h4("Scatterplots"), # second panel: scatterplots 
+                                      tabPanel(h4("Scatterplots"), # third panel: scatterplots 
                                                sidebarLayout( # create a side bar/main panel layout
                                                  sidebarPanel("Filter by transect and species", # title the side bar
                                                               checkboxGroupInput(inputId="transect", # create a checkbox widget that allows users to filter data by transect
@@ -131,30 +137,34 @@ server <- function(input,output){
       filter(transect==input$transect) # filter the data set by the transect input
   })
   
-  leaf_traits_reactive2 <- reactive({ # create a reactive data frame for table options
-    leaf_traits %>%
-      filter(species_cleaned==input$species) # filter the data set by the species input
+  summary_reactive <- reactive({ # create a reactive data frame for summary stat bar plot
+    leaf_traits_summary %>%
+      filter(trait==input$traitbar) # filter data set by trait input
   })
   
-  summary_reactive <- reactive({ # create a reactive data frame for summary stat visualization (bar plots and boxplots)
+  summary_reactive2 <- reactive({ # create a reactive data frame for summary stat boxplot
     leaf_traits_summary %>%
-      filter()
+      filter(trait==input$traitbox) # filter data set by trait input
   })
+  
   output$summary_table <- renderPrint({ # create a reactive table of summary stats
     summary(leaf_traits_reactive[,as.numeric(input$species)]) 
   })
+  
   output$leaf_traits_plot <- renderPlot({ # reactive scatterplot of transect vs. curling, point color depends on species
     ggplot(data=leaf_traits_reactive(),aes(x=transect,y=curling_mm,color=species_cleaned)) +
       geom_point()
   })
   
-  output$leaf_traits_bar <- renderPlot({ # reactive bar graph of species vs. mean leaf curling
-    ggplot(data=curling_summary_reactive, aes(x=species_cleaned, y=mean)) + # create plot of species x curling
-      geom_bar(stat="identity", fill="plum4") + # plot = bar graph
+  output$leaf_traits_bar <- renderPlot({ # reactive bar plot of species vs. mean of each trait
+    ggplot(data=summary_reactive(), aes(x=species_cleaned, y=mean)) + # create plot of species x all traits
+      geom_bar(stat="identity", fill="darkseagreen") + # plot = bar plot
       xlab("Species") + # x-axis label
-      ylab("Curling(mm)") + # y-axis label
-      geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+      ylab("Mass (g)") + # y-axis label
+      geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") + # add error bars
+      theme_pander() # set theme
   })
-} 
+  
+}
 
 shinyApp(ui=ui,server=server) # combine ui and server to create Shiny app
