@@ -11,7 +11,6 @@ library(dplyr)
 library(forcats)
 library(bslib)
 library(ggthemes)
-library(extrafont)
 
 # load in overall Midland leaf traits data
 leaf_traits <- read_csv("leaf_traits.csv") # load Midland leaf traits data
@@ -32,7 +31,7 @@ curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf
     mean=mean(curling_mm), # mean
     sd=sd(curling_mm) # std. deviation
   )
-var1 <- rep("curling", times=12) # create vector with 12 values "curling"
+var1 <- rep("curling", times=7) # create vector with 12 values "curling"
 curling_summary <- curling_summary %>%
   add_column(trait=var1) # add "curling" vector to curling summary data frame
 
@@ -43,7 +42,7 @@ thickness_summary <- leaf_traits %>% # create data frame for summary stats of le
     mean=mean(thickness_mm), # mean
     sd=sd(thickness_mm) # std. deviation
   )
-var2 <- rep("thickness", times=12) # create vector with 12 values "curling"
+var2 <- rep("thickness", times=7) # create vector with 12 values "curling"
 thickness_summary <- thickness_summary %>%
   add_column(trait=var2) # add "curling" vector to curling summary data frame
 
@@ -54,7 +53,7 @@ mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf ma
     mean=mean(mass_g), # mean
     sd=sd(mass_g) # std. deviation
   )
-var3 <- rep("mass", times=12) # create vector with 12 values "curling"
+var3 <- rep("mass", times=7) # create vector with 12 values "curling"
 mass_summary <- mass_summary %>%
   add_column(trait=var3) # add "curling" vector to curling summary data frame
 
@@ -160,7 +159,7 @@ server <- function(input,output){
     ggplot(data=summary_reactive(), aes(x=species_cleaned, y=mean)) + # create plot of species x all traits
       geom_bar(stat="identity", fill="darkseagreen") + # plot = bar plot
       xlab("Species") + # x-axis label
-      ylab("Mass (g)") + # y-axis label
+      ylab(input$traitbox) + # y-axis label
       geom_errorbar(aes(x=species_cleaned, ymin=mean-sd, ymax=mean+sd), color="black") + # add error bars
       theme_pander() # set theme
   })
