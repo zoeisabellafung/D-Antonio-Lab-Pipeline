@@ -33,13 +33,14 @@ leaf_traits <- read_csv(midland_leaf_traits) %>% # read in Midland leaf traits c
 ```
 # Clean up data set/generate summary stats
 ```{r}
-species_clean <- leaf_traits$species %>% # make a vector from the species column
-  as.character(species_clean) # make "species_clean" a character
+species_clean <- leaf_traits$species # make a vector from the species column
+species_clean <- as.character(species_clean) # make "species_clean" a character
 species_clean <- species_clean %>%
-  str_remove_all("[_0123456789]") # remove the number/_ characters from the species names
-  # str_remove("[NA]") # remove the "NA" from the ends of species names
+  str_remove_all("[_0123456789]") %>% # remove the number/_ characters from the species names
+  str_replace_all(c("ARTCAL"="ARCA", "HEARNA"="HEAR", "QUAGNA"="QUAG", "ARCAL"="ARCA", "QUDONA"="QUDO")) # standardize the data column with species names 
 leaf_traits <- leaf_traits %>%
-  add_column(species_cleaned=species_clean) # add species without numbers to dataset
+  add_column(species_cleaned=species_clean) %>% # add species without numbers to dataset
+  slice(-145) # delete the row with "NA" for leaf traits
 curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf curling
   group_by(species_cleaned) %>% # group the summary stats by species
   summarise(
@@ -47,10 +48,9 @@ curling_summary <- leaf_traits %>% # create data frame for summary stats of leaf
     mean=mean(curling_mm), # mean
     sd=sd(curling_mm) # std. deviation
   )
-var1 <- rep("curling", times=12) # create vector with 12 values "curling"
+var1 <- rep("curling", times=7) # create vector with 12 values "curling"
 curling_summary <- curling_summary %>%
   add_column(trait=var1) # add "curling" vector to curling summary data frame
-
 thickness_summary <- leaf_traits %>% # create data frame for summary stats of leaf thickness
   group_by(species_cleaned) %>% # group the summary stats by species
   summarise(
@@ -58,7 +58,7 @@ thickness_summary <- leaf_traits %>% # create data frame for summary stats of le
     mean=mean(thickness_mm), # mean
     sd=sd(thickness_mm) # std. deviation
   )
-var2 <- rep("thickness", times=12) # create vector with 12 values "curling"
+var2 <- rep("thickness", times=7) # create vector with 12 values "curling"
 thickness_summary <- thickness_summary %>%
   add_column(trait=var2) # add "curling" vector to curling summary data frame
 
@@ -69,7 +69,7 @@ mass_summary <- leaf_traits %>% # create data frame for summary stats of leaf ma
     mean=mean(mass_g), # mean
     sd=sd(mass_g) # std. deviation
   )
-var3 <- rep("mass", times=12) # create vector with 12 values "curling"
+var3 <- rep("mass", times=7) # create vector with 12 values "curling"
 mass_summary <- mass_summary %>%
   add_column(trait=var3) # add "curling" vector to curling summary data frame
 
