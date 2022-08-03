@@ -1,0 +1,99 @@
+---
+title: "LFM Pipeline"
+author: "Zoe Fung"
+date: "8/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# install/load packages
+library(tidyverse)
+library(readr)
+library(janitor)
+library(here)
+library(lubridate)
+library(ggplot2)
+```
+
+# Importing Data
+## Enter your data files here
+```{r}
+livefuelmoisture <- "data/cleaned_LFM_Zoe.csv" # live fuel moisture datasheet
+```
+
+## Import data file into R
+```{r}
+live_fuel_moisture <- read_csv(livefuelmoisture) %>% # read in Midland leaf traits csv file
+  clean_names() %>% # standardize column header names
+  mutate(date_new=ymd(date_new)) # tell R "date_new" is a DATE
+```
+# Clean up data set/generate summary stats
+```{r}
+ldmc_summary <- live_fuel_moisture %>% # create data frame for summary stats of leaf dry matter content
+  group_by(species) %>% # group the summary stats by species
+  summarise(
+    n=n(), # sample size
+    mean=mean(ldmc), # mean
+    sd=sd(ldmc) # std. deviation
+  )
+var1 <- rep("ldmc", times=21) # create vector with 21 values "ldmc"
+ldmc_summary <- ldmc_summary %>%
+  add_column(trait=var1) # add "ldmc" vector to ldmc summary data frame
+water_content_summary <- live_fuel_moisture %>% # create data frame for summary stats of water content
+  group_by(species) %>% # group the summary stats by species
+  summarise(
+    n=n(), # sample size
+    mean=mean(water_content), # mean
+    sd=sd(water_content) # std. deviation
+  )
+var2 <- rep("water content", times=21) # create vector with 21 values "water content"
+water_content_summary <- water_content_summary %>%
+  add_column(trait=var2) # add "water content" vector to water content summary data frame
+
+lfm_summary <- live_fuel_moisture %>% # create data frame for summary stats of live fuel moisture
+  group_by(species) %>% # group the summary stats by species
+  summarise(
+    n=n(), # sample size
+    mean=mean(lfm), # mean
+    sd=sd(lfm) # std. deviation
+  )
+var3 <- rep("lfm", times=21) # create vector with 21 values "lfm"
+lfm_summary <- lfm_summary %>%
+  add_column(trait=var3) # add "lfm" vector to lfm summary data frame
+
+live_fuel_moisture_summary <- bind_rows(ldmc_summary, water_content_summary, lfm_summary) # combine the three data sets 
+```
+
+# Create standardized .csv
+```{r}
+write_csv(live_fuel_moisture,paste("live_fuel_moisture",".csv",sep="")) # create .csv with standardized column headers
+```
+
+# Graphs
+## Bar charts
+```{r}
+ggplot(ldmc_summary, aes(x=species, y=mean)) + # create plot of species x curling
+  geom_bar(stat="identity", fill="plum4") + # plot = bar plot
+  xlab("Species") + # x-axis label
+  ylab("Leaf dry matter content") + # y-axis label
+  geom_errorbar(aes(x=species, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+
+ggplot(water_content_summary, aes(x=species, y=mean)) + # create plot of species x thickness
+  geom_bar(stat="identity", fill="plum4") + # plot = bar plot
+  xlab("Species") + # x-axis label
+  ylab("Water content") + # y-axis label
+  geom_errorbar(aes(x=species, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+
+ggplot(lfm_summary, aes(x=species, y=mean)) + # create plot of species x mass
+  geom_bar(stat="identity", fill="plum4") + # plot = bar plot
+  xlab("Species") + # x-axis label
+  ylab("Live fuel moisture content") + # y-axis label
+  geom_errorbar(aes(x=species, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars
+
+ggplot(live_fuel_moisture_summary, aes(x=species, y=mean)) + # create plot of species x all traits
+  geom_bar(stat="identity", fill="plum4") + # plot = bar plot
+  xlab("Species") + # x-axis label
+  ylab("Mass (g)") + # y-axis label
+  geom_errorbar(aes(x=species, ymin=mean-sd, ymax=mean+sd), color="black") # add error bars)
+```
